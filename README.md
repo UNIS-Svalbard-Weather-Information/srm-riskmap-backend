@@ -2,6 +2,31 @@
 
 A FastAPI-based API for mapping risk events in Svalbard using PostGIS for geographic data storage.
 
+
+
+## Table of Contents
+1. [Description](#description)
+2. [Project Structure](#project-structure)
+3. [Prerequisites](#prerequisites)
+4. [Installation](#installation)
+   - [Option 1: Quick Start with Docker (Recommended)](#option-1-quick-start-with-docker-recommended)
+   - [Option 2: Manual Database Setup](#option-2-manual-database-setup)
+5. [Environment Variables](#environment-variables)
+6. [Alembic](#alembic)
+7. [Running the Application](#running-the-application)
+8. [Adding New Models](#adding-new-models)
+9. [Docker Development](#docker-development)
+10. [Troubleshooting](#troubleshooting)
+11. [Contributing](#contributing)
+12. [License](#license)
+
+
+
+## Description
+This API allows you to map risk events in Svalbard using FastAPI and PostGIS for geospatial data management.
+
+
+
 ## Project Structure
 
 ```
@@ -10,215 +35,161 @@ srm-riskmap-backend/
 │   ├── main.py                  # Main FastAPI application
 │   ├── database/
 │   │   ├── session.py           # Database session management
-│   │   ├── config.py            # Database configuration
+│   │   └── config.py            # Database configuration
 │   ├── models/
 │   │   └── position.py          # Pydantic models (request/response)
 │   ├── schemas_db/
 │   │   └── position.py          # SQLAlchemy database models
 │   └── routes/
-│       └── positions.py        # API routes for positions
+│       └── positions.py         # API routes for positions
 ├── alembic/
-│   ├── env.py                  # Alembic configuration
-│   └── versions/               # Migration scripts
-├── docker-compose.yml          # Docker development setup
-├── alembic.ini                 # Alembic configuration file
-├── .env                        # Environment variables
-└── README.md                   # This file
+│   ├── env.py                   # Alembic configuration
+│   └── versions/                # Migration scripts
+├── docker-compose.yml           # Docker development setup
+├── alembic.ini                  # Alembic configuration file
+├── .env.example                 # Example environment variables file
+├── .env                         # Environment variables (ignored by Git)
+└── README.md                    # This file
 ```
 
-## Prerequisites
 
+
+## Prerequisites
 - Python 3.8+
 - Docker (for development database)
 - UV (Python package manager)
 
-## Setup Instructions
-
-### Option 1: Quick Start with Docker (Recommended for Development)
-
-```bash
-# Start PostgreSQL with PostGIS
-docker-compose up -d
-
-# Install Python dependencies
-uv venv
-uv sync
-```
-# Activate the virtual environment
-# On Linux/MacOS:
-```bash
-source .venv/bin/activate
-```
-# On Windows (PowerShell):
-```bash
-.\.venv\Scripts\Activate.ps1
-```
-# On Windows (CMD):
-```bash
-.venv\Scripts\activate.bat
-```
-
-```bash
-# Run migrations
-alembic upgrade head
-
-# Start the API
-uvicorn src.main:app --reload
-```
 
 
+## Installation
 
-```bash
-# Start PostgreSQL with PostGIS
-docker-compose up -d
+### Option 1: Quick Start with Docker (Recommended)
+1. **Rename and configure the `.env` file:**
+   ```bash
+   cp .env.example .env
+   ```
+   Edit the `.env` file to set your environment variables (e.g., `DATABASE_URL`).
 
-# Install Python dependencies
-uv venv
-uv sync
+2. **Start the database, create a virtual environment, and install dependencies:**
+   ```bash
+   docker-compose up -d
+   uv venv
+   uv sync
+   ```
 
-# Run migrations
-alembic upgrade head
+3. **Activate the virtual environment:**
+   - Linux/MacOS:
+     ```bash
+     source .venv/bin/activate
+     ```
+   - Windows (PowerShell):
+     ```bash
+     .\.venv\Scripts\Activate.ps1
+     ```
+   - Windows (CMD):
+     ```bash
+     .venv\Scripts\activate.bat
+     ```
 
-# Start the API
-uvicorn src.main:app --reload
-```
+4. **Run migrations and start the API:**
+   ```bash
+   alembic upgrade head
+   uvicorn src.main:app --reload
+   ```
 
 ### Option 2: Manual Database Setup
+1. **Install PostgreSQL and PostGIS:**
+   - **Windows**: Download from [PostgreSQL official site](https://www.postgresql.org/download/windows/)
+   - **Mac**: `brew install postgresql postgis`
+   - **Linux**: `sudo apt-get install postgresql postgis`
 
-#### Install PostgreSQL and PostGIS
+2. **Create the database and enable PostGIS:**
+   ```sql
+   psql -U postgres
+   CREATE DATABASE svalbard_risk_map;
+   \c svalbard_risk_map
+   CREATE EXTENSION postgis;
+   ```
 
-- **Windows**: Download from [PostgreSQL official site](https://www.postgresql.org/download/windows/)
-- **Mac**: `brew install postgresql postgis`
-- **Linux**: `sudo apt-get install postgresql postgis`
+3. **Configure the `.env` file:**
+   ```env
+   DATABASE_URL=postgresql+psycopg2://username:password@localhost:5432/svalbard_risk_map
+   ```
 
-#### Create Database and Enable PostGIS
 
-```sql
--- Connect to PostgreSQL as admin
-psql -U postgres
 
--- Create database
-CREATE DATABASE svalbard_risk_map;
+## Environment Variables
+- **Docker setup**: Use the provided `.env.example` as a template and rename it to `.env`.
+  ```env
+  DATABASE_URL=postgresql+psycopg2://postgres:postgres@localhost:5432/svalbard_risk_map
+  ```
+- **Manual setup**: Update the `.env` file with your PostgreSQL credentials.
 
--- Connect to the new database
-\c svalbard_risk_map
 
--- Enable PostGIS extension
-CREATE EXTENSION postgis;
-```
 
-### 3. Configure Environment Variables
+## Alembic
+Alembic is used for database migrations in this project. It allows you to manage changes to your database schema over time.
 
-For **Docker setup**, the `.env` file should point to the Docker container:
 
-```env
-DATABASE_URL=postgresql+psycopg2://postgres:postgres@localhost:5432/svalbard_risk_map
-```
 
-For **manual setup**, replace with your PostgreSQL credentials:
-
-```env
-DATABASE_URL=postgresql+psycopg2://username:password@localhost:5432/svalbard_risk_map
-```
-
-### 4. Initialize Alembic
-
-```bash
-alembic init alembic
-```
-
-This will create the alembic directory structure. You can replace the generated files with the ones provided in this project.
-
-### 5. Create Initial Migration
-
-```bash
-alembic revision --autogenerate -m "Create positions table"
-```
-
-This will create a migration script in `alembic/versions/`.
-
-### 6. Run Migrations
-
-```bash
-alembic upgrade head
-```
-
-This will create the database tables based on your models.
-
-## Running the Application
-
-### Development Mode
-
-```bash
-uvicorn src.main:app --reload
-```
-
-The API will be available at `http://localhost:8000`
-
-### Production Mode
-
-```bash
-uvicorn src.main:app --host 0.0.0.0 --port 8000
-```
-
-## API Endpoints
-
-### Positions
-
-- **POST /positions/** - Create a new position
-  ```json
-  {
-    "event_id": "string",
-    "latitude": 78.2232,
-    "longitude": 15.6468
-  }
+- **Create a new migration** (after modifying your models):
+  ```bash
+  alembic revision --autogenerate -m "Description of the migration"
   ```
 
-- **GET /positions/** - Get all positions
+- **Apply migrations** to update your database schema:
+  ```bash
+  alembic upgrade head
+  ```
 
-- **GET /positions/{event_id}** - Get a specific position by event ID
+- **Downgrade migrations** (if needed):
+  ```bash
+  alembic downgrade -1
+  ```
 
-## Database Schema
+- **View migration history**:
+  ```bash
+  alembic history
+  ```
 
-### Positions Table
+- **Reset migrations** (use with caution):
+  ```bash
+  alembic stamp head
+  ```
 
-| Column | Type | Description |
-|--------|------|-------------|
-| id | Integer | Primary key (auto-incremented) |
-| event_id | String | Unique identifier for the event |
-| geometry | Geometry(POINT, 4326) | Geographic location (latitude, longitude) in WGS84 |
 
-### Geographic Data
 
-- The `geometry` column uses PostGIS to store geographic points
-- Coordinates are stored in WGS84 (SRID 4326) format
-- Latitude and longitude are converted to Point geometry automatically
+## Running the Application
+- **Development mode**:
+  ```bash
+  uvicorn src.main:app --reload
+  ```
+  The API will be available at [http://localhost:8000](http://localhost:8000).
+
+- **Production mode**:
+  ```bash
+  uvicorn src.main:app --host 0.0.0.0 --port 8000
+  ```
+
 
 ## Adding New Models
-
-To add new database models:
-
-1. Create a new file in `src/models/` (e.g., `event.py`)
-2. Define your SQLAlchemy model class
-3. Import the model in `src/main.py`
-4. Create a migration:
+1. **Create a new model file** in `src/models/` (e.g., `event.py`).
+2. **Define your SQLAlchemy model class**.
+3. **Import the model** in `src/main.py`.
+4. **Create and run a migration**:
    ```bash
    alembic revision --autogenerate -m "Add event model"
-   ```
-5. Run the migration:
-   ```bash
    alembic upgrade head
    ```
 
-## Example Model
-
+### Example Model
 ```python
 from sqlalchemy import Column, Integer, String, DateTime, Text
 from src.database.session import Base
 
 class Event(Base):
     __tablename__ = "events"
-    
+
     id = Column(Integer, primary_key=True, index=True)
     event_id = Column(String, unique=True, index=True)
     title = Column(String, index=True)
@@ -227,68 +198,58 @@ class Event(Base):
     severity = Column(String)
 ```
 
+
+
 ## Docker Development
 
-### Starting the Database
-
-```bash
-# Start PostgreSQL with PostGIS
-docker-compose up -d
-
-# Stop the database
-docker-compose down
-
-# View logs
-docker-compose logs -f
-```
-
-### Connecting to the Database
-
-```bash
-# Connect using psql
-docker exec -it svalbard_postgis_dev psql -U postgres -d svalbard_risk_map
-
-# Check PostGIS is working
-SELECT PostGIS_version();
-```
-
 ### Database Management
+- **Start/Stop the database**:
+  ```bash
+  docker-compose up -d
+  docker-compose down
+  ```
+- **View logs**:
+  ```bash
+  docker-compose logs -f
+  ```
+- **Connect to the database**:
+  ```bash
+  docker exec -it svalbard_postgis_dev psql -U postgres -d svalbard_risk_map
+  ```
+- **Check PostGIS**:
+  ```sql
+  SELECT PostGIS_version();
+  ```
 
-```bash
-# Reset database (development only)
-docker-compose down -v && docker-compose up -d
+### Backup/Restore
+- **Backup**:
+  ```bash
+  docker exec svalbard_postgis_dev pg_dump -U postgres svalbard_risk_map > backup.sql
+  ```
+- **Restore**:
+  ```bash
+  docker exec -i svalbard_postgis_dev psql -U postgres svalbard_risk_map < backup.sql
+  ```
 
-# Backup database
-docker exec svalbard_postgis_dev pg_dump -U postgres svalbard_risk_map > backup.sql
 
-# Restore database
-docker exec -i svalbard_postgis_dev psql -U postgres svalbard_risk_map < backup.sql
-```
 
 ## Troubleshooting
+- **PostGIS not found**: Ensure the PostGIS extension is enabled in your database.
+- **Connection refused**: Verify PostgreSQL is running and your credentials are correct.
+- **Migration errors**: Reset migrations with `alembic stamp head`.
+- **Docker connection issues**: Check container status with `docker ps`.
 
-### Common Issues
 
-1. **PostGIS not found**: Make sure you've enabled the PostGIS extension in your database
-2. **Connection refused**: Check that PostgreSQL is running and your credentials are correct
-3. **Migration errors**: Try resetting migrations with `alembic stamp head`
-4. **Docker connection issues**: Make sure the container is running (`docker ps`)
-
-### Debugging
-
-- Check database connection: `psql -U username -d svalbard_risk_map`
-- View tables: `\dt` in psql
-- Check PostGIS version: `SELECT PostGIS_version();`
-- Docker container status: `docker ps`
 
 ## Contributing
+1. Fork the repository.
+2. Create a new branch: `git checkout -b feature-name`.
+3. Make your changes.
+4. Create a migration if database changes are needed.
+5. Submit a pull request.
 
-1. Fork the repository
-2. Create a new branch: `git checkout -b feature-name`
-3. Make your changes
-4. Create a migration if database changes are needed
-5. Submit a pull request
+
 
 ## License
+This project is licensed under the **European Union Public Licence v. 1.2** – see [LICENSE.md](LICENSE.md) for details.
 
-This project is licensed under the European Union Public Licence v. 1.2 - see [LICENSE.md](LICENSE.md) for details.
