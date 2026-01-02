@@ -1,6 +1,7 @@
 services:
   postgres:
-    image: postgis/postgis:15-3.4
+    # image: postgis/postgis:15-3.4
+    image: ghcr.io/unis-svalbard-weather-information/postgis:18-3.6-20250102
     container_name: svalbard_postgis_dev
     environment:
       POSTGRES_USER: postgres
@@ -9,7 +10,7 @@ services:
     ports:
       - "5432:5432"
     volumes:
-      - postgres_data:/var/lib/postgresql/data
+      - postgres_data:/var/lib/postgresql
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U postgres"]
       interval: 5s

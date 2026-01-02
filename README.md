@@ -173,7 +173,7 @@ Alembic is used for database migrations in this project. It allows you to manage
 
 
 ## Adding New Models
-1. **Create a new model file** in `src/models/` (e.g., `event.py`).
+1. **Create a new model file** in `src/schemas_db/` (e.g., `event.py`).
 2. **Define your SQLAlchemy model class**.
 3. **Import the model** in `src/main.py`.
 4. **Create and run a migration**:
