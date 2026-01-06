@@ -16,9 +16,10 @@ A FastAPI-based API for mapping risk events in Svalbard using PostGIS for geogra
 7. [Running the Application](#running-the-application)
 8. [Adding New Models](#adding-new-models)
 9. [Docker Development](#docker-development)
-10. [Troubleshooting](#troubleshooting)
-11. [Contributing](#contributing)
-12. [License](#license)
+10. [QGIS Database Access](#QGIS)
+11. [Troubleshooting](#troubleshooting)
+12. [Contributing](#contributing)
+13. [License](#license)
 
 
 
@@ -231,7 +232,9 @@ class Event(Base):
   docker exec -i svalbard_postgis_dev psql -U postgres svalbard_risk_map < backup.sql
   ```
 
+## QGIS
 
+The database can be access via QGIS to do processing analysis. [See how to connect here](https://medium.com/@faithabiala/how-to-connect-postgis-to-qgis-a-step-by-step-guide-tutorial-72375c7cc71d#c98c)
 
 ## Troubleshooting
 - **PostGIS not found**: Ensure the PostGIS extension is enabled in your database.
